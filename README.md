@@ -24,18 +24,27 @@ SEO metadata is present in the initial HTML for link crawlers. The build automat
 
 The website uses a text wordmark, an empty favicon, and a text-only 1200 × 630 social preview in `public/social-preview-v2.png`. Run `npm run assets` to regenerate the preview.
 
-## Temporary model lifecycle
+## Download once, use again offline
 
-Loading requires an explicit click: approximately 180 MB of model, config, tokenizer and pilot voice, plus the small WASM engine. Model fetches use `cache: 'no-store'` and omit credentials. There is no service worker, persistent model cache, CacheStorage, IndexedDB or localStorage.
+Enter text and click **Generate speech**. First use downloads approximately 180 MB of model, config, tokenizer and pilot voice, then generates that text automatically. There is no separate model-loading step. Future visits reuse the saved files before making any model network request.
 
-Clear model terminates the dedicated worker, including in-flight downloads and generation, drops its WASM heap, pauses playback and revokes generated audio URLs. `pagehide` clears the model on navigation, including the back/forward cache. Closing a tab releases its resources; memory reclamation timing belongs to the browser. Download WAV is an explicit export that visitors can keep independently.
+Complete model files are saved in CacheStorage at their immutable Hugging Face URLs. Downloads are checked against exact expected byte counts before saving; interrupted files are retried, while completed files are reused. There is no application expiry, age limit, automatic cleanup or deletion on tab/browser close. Cancel stops current work and frees working memory while preserving saved files. Browser storage is specific to the site origin, so development and production hosts have separate downloads.
+
+The production build includes a service worker that saves the page, JavaScript, fonts, speech worker and WASM engine. Once both page and voice are saved, the site can reopen and generate speech without internet. `npm run dev` supports saved model files; use `npm run build` and `npm run preview` to verify offline reopening. App updates preserve model downloads and previously saved app files.
+
+The app requests persistent browser storage to reduce automatic eviction. Browsers control whether it is granted and can still remove site data, particularly in private browsing or under storage pressure; no website can promise permanent storage. The UI reports storage failures without blocking current speech and only advertises offline availability when the page and model are both saved. Visitors can remove the download themselves through their browser's site-data settings. There is no account, speech server or uploaded text.
+
+## Example phrases
+
+The first supplied Pidgin phrase is shown on arrival. Try an example cycles through the 20 provided phrases, preserving their wording; the first phrase is also a static placeholder when the field is empty. There is no typing animation.
 
 ## Inference and verification
 
 The CPU engine uses standard WASM SIMD, the exact adapted model, original tokenizer and pilot voice. Text is passed through without English normalization. Up to 300 characters per generation; mono 24 kHz WAV output. Physical device memory usage exceeds download size. Mobile speed and native-speaker speech quality still need measurement.
 
-The initial implementation passed real model loading, generation and playback in a desktop browser; clear-after-result, clear-during-download, clear-during-generation and fresh unloaded-page checks also passed. The 390 px responsive layout had no horizontal overflow. TypeScript/build, WAV encoding and SEO-origin tests are available locally. Technical provenance, licenses and base-model attribution are retained in the [model card](https://huggingface.co/fotiecodes/turaco-nano-tts-wes#license-and-attribution) and source dependencies.
+The production build passed real first-click downloading, saving, generation and playback. With the preview server stopped, closing and reopening a tab still loaded the page and generated the first supplied example: 7.04 seconds of audio with **0 model bytes downloaded**. Cancel preserved the saved voice. All 20 examples cycled and wrapped back to the first, and the 390 px layout had no horizontal overflow. Twelve regression tests cover saved-file reuse without network access, interrupted/corrupt downloads, storage limits, pinned revisions, native fetch invocation, offline navigation/assets, reuse of the speech engine across app updates, SEO origins and WAV encoding.
 
+Technical provenance, licenses and base-model attribution are retained in the [model card](https://huggingface.co/fotiecodes/turaco-nano-tts-wes#license-and-attribution) and source dependencies.
 
 ## Repository scope
 
