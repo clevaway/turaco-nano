@@ -1,56 +1,63 @@
-# turaco-nano-tts-wes
+# Turaco Nano TTS
 
-A standalone browser playground by [Clevaway](https://clevaway.com) for the `turaco-nano-tts-wes` Cameroon Pidgin English speech model. React, Vite, TypeScript and shadcn/ui. All speech is generated on the visitor's device.
+A browser playground for [turaco-nano-tts-wes](https://huggingface.co/fotiecodes/turaco-nano-tts-wes), an experimental text-to-speech model for Cameroon Pidgin English. Part of Project Turaco, an independent applied AI research initiative focused on underrepresented African languages.
 
-## Development
+Speech is generated locally on the user's device. No account or inference server is required, and text is not uploaded for generation.
+
+## Features
+
+- Generate speech from Cameroon Pidgin text, with example phrases to get started.
+- Download the voice on first use (approximately 180 MB), then reuse it across visits.
+- Generate speech offline once the app and voice have been saved.
+- Play generated audio automatically and export it as a WAV file.
+
+The model is a research preview. Pronunciation, accent and intonation can vary; native-speaker evaluation and mobile performance measurements are still needed. See the [model card](https://huggingface.co/fotiecodes/turaco-nano-tts-wes) for training details, evaluation limits and attribution.
+
+## Getting started
+
+Install dependencies and start the development server:
 
 ```sh
 npm ci
 npm run dev
-npm run build
-npm run preview
-npm test
 ```
 
-## Deploy with GitHub and Vercel
+Create and preview a production build:
 
-Import `clevaway/turaco-nano` from the Vercel dashboard. Keep **Root Directory** as `.`.
+```sh
+npm run build
+npm run preview
+```
 
-Vercel uses the checked-in `vercel.json`: Vite preset, `npm run build`, and output directory `dist`. No inference server, backend token or model upload is needed. Public model files are already pinned to an immutable Hugging Face commit. There is no automatic publishing script or platform-specific source synchronization.
+Run the checks:
 
-SEO metadata is present in the initial HTML for link crawlers. The build automatically reads Vercel's production-domain environment variable to create canonical URLs, absolute social-image URLs, structured data, `robots.txt` and a sitemap. Vercel preview deployments use `noindex`. For another host, `SITE_URL` is an optional build-time origin override. No domain setup is required for local development.
+```sh
+npm test
+npm run lint
+```
 
-## Brand assets
+Built with React, TypeScript, Vite and shadcn/ui. Speech runs in a dedicated CPU worker using WebAssembly SIMD. Model assets are fetched from a pinned public Hugging Face revision; no API token is required.
 
-The website uses a text wordmark, an empty favicon, and a text-only 1200 × 630 social preview in `public/social-preview-v2.png`. Run `npm run assets` to regenerate the preview.
+## Offline use and storage
 
-## Download once, use again offline
+The first generation downloads the model, tokenizer, configuration and voice. Complete downloads are saved in browser storage and reused. Closing a tab does not remove them, and the app applies no expiration period. Canceling generation preserves saved downloads.
 
-Enter text and click **Generate speech**. First use downloads approximately 180 MB of model, config, tokenizer and pilot voice, then generates that text automatically. There is no separate model-loading step. Future visits reuse the saved files before making any model network request.
+The production build includes a service worker that saves the app and speech engine for offline visits. Use a production build to test offline reopening; the development server does not provide the full offline experience.
 
-Complete model files are saved in CacheStorage at their immutable Hugging Face URLs. Downloads are checked against exact expected byte counts before saving; interrupted files are retried, while completed files are reused. There is no application expiry, age limit, automatic cleanup or deletion on tab/browser close. Cancel stops current work and frees working memory while preserving saved files. Browser storage is specific to the site origin, so development and production hosts have separate downloads.
+Storage belongs to each site origin. Users can remove saved files through their browser's site-data settings. The app requests persistent storage where supported, but browsers may still clear data under storage pressure or in private browsing.
 
-The production build includes a service worker that saves the page, JavaScript, fonts, speech worker and WASM engine. Once both page and voice are saved, the site can reopen and generate speech without internet. `npm run dev` supports saved model files; use `npm run build` and `npm run preview` to verify offline reopening. App updates preserve model downloads and previously saved app files.
+## Hosting
 
-The app requests persistent browser storage to reduce automatic eviction. Browsers control whether it is granted and can still remove site data, particularly in private browsing or under storage pressure; no website can promise permanent storage. The UI reports storage failures without blocking current speech and only advertises offline availability when the page and model are both saved. Visitors can remove the download themselves through their browser's site-data settings. There is no account, speech server or uploaded text.
+The production build is a static site in `dist/` and can be served by a static hosting provider. Set `SITE_URL` to the public origin at build time to generate canonical links, social-preview URLs and a sitemap. Hosting configuration for Vercel is included.
 
-## Example phrases
+## Contributing
 
-The supplied Project Turaco introduction is shown on arrival. Try an example cycles through the 20 provided phrases, preserving their wording; the first phrase is also a static placeholder when the field is empty. There is no typing animation. After Generate speech, completed audio plays automatically using the same audio element unlocked during the click. Manual controls and a short play prompt remain available if browser settings block automatic playback.
+Bug reports, accessibility improvements and contributions are welcome. For speech or performance issues, include the example text, browser and device, and whether the model was already downloaded. Avoid sharing private or sensitive text.
 
-## Inference and verification
+Before submitting a change, run the checks and production build above. Changes to speech generation or storage should also be tested in the browser, including offline use when relevant.
 
-The CPU engine uses standard WASM SIMD, the exact adapted model, original tokenizer and pilot voice. Text is passed through without English normalization. Up to 300 characters per generation; mono 24 kHz WAV output. Physical device memory usage exceeds download size. Mobile speed and native-speaker speech quality still need measurement.
-
-The production build passed real first-click downloading, saving, generation and playback. With the preview server stopped, closing and reopening a tab still loaded the page and generated a 126-character example: 7.04 seconds of audio with **0 model bytes downloaded**. Cancel preserved the saved voice. All 20 examples cycled and wrapped back to the first, and the 390 px layout had no horizontal overflow. Fifteen regression tests cover saved-file reuse without network access, interrupted/corrupt downloads, storage limits, pinned revisions, native fetch invocation, offline navigation/assets, reuse of the speech engine across app updates, SEO origins, WAV encoding and automatic-playback preparation/fallback. The current 256-character Project Turaco introduction produced 17.28 seconds of audio and began playing automatically, without a second click.
-
-Technical provenance, licenses and base-model attribution are retained in the [model card](https://huggingface.co/fotiecodes/turaco-nano-tts-wes#license-and-attribution) and source dependencies.
-
-## Repository scope
-
-This repository contains the browser demo, source components, tests, build configuration and social-preview image. The training notebook, corpus, model weights, recordings, checkpoints, local verification artifacts and dependency/build caches are excluded. Model assets are downloaded at runtime from the public, pinned Hugging Face release; no token is needed. The training notebook remains available separately in the model repository.
-
+This repository contains the browser app, tests and build tools. Model weights and the training notebook are available separately in the [Hugging Face model repository](https://huggingface.co/fotiecodes/turaco-nano-tts-wes/tree/main).
 
 ## License
 
-The website source is MIT, copyright Clevaway. Model weights have their own license and provenance, documented in the linked model card; they are not included in this repository.
+The website source is [MIT licensed](LICENSE), copyright Clevaway. Model weights and runtime dependencies have their own licenses; see the [model card's license and attribution section](https://huggingface.co/fotiecodes/turaco-nano-tts-wes#license-and-attribution) and dependency notices.
