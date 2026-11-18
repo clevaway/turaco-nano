@@ -1,0 +1,10 @@
+{
+  "name": "turaco-nano-tts-wes by Clevaway",
+  "short_name": "turaco-nano-tts-wes",
+  "description": "Cameroon Pidgin English text to speech on your device.",
+  "lang": "en",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f7f4",
+  "theme_color": "#f8f7f4"
+}
