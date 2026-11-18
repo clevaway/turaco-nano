@@ -36,13 +36,13 @@ The app requests persistent browser storage to reduce automatic eviction. Browse
 
 ## Example phrases
 
-The first supplied Pidgin phrase is shown on arrival. Try an example cycles through the 20 provided phrases, preserving their wording; the first phrase is also a static placeholder when the field is empty. There is no typing animation.
+The supplied Project Turaco introduction is shown on arrival. Try an example cycles through the 20 provided phrases, preserving their wording; the first phrase is also a static placeholder when the field is empty. There is no typing animation. After Generate speech, completed audio plays automatically using the same audio element unlocked during the click. Manual controls and a short play prompt remain available if browser settings block automatic playback.
 
 ## Inference and verification
 
 The CPU engine uses standard WASM SIMD, the exact adapted model, original tokenizer and pilot voice. Text is passed through without English normalization. Up to 300 characters per generation; mono 24 kHz WAV output. Physical device memory usage exceeds download size. Mobile speed and native-speaker speech quality still need measurement.
 
-The production build passed real first-click downloading, saving, generation and playback. With the preview server stopped, closing and reopening a tab still loaded the page and generated the first supplied example: 7.04 seconds of audio with **0 model bytes downloaded**. Cancel preserved the saved voice. All 20 examples cycled and wrapped back to the first, and the 390 px layout had no horizontal overflow. Twelve regression tests cover saved-file reuse without network access, interrupted/corrupt downloads, storage limits, pinned revisions, native fetch invocation, offline navigation/assets, reuse of the speech engine across app updates, SEO origins and WAV encoding.
+The production build passed real first-click downloading, saving, generation and playback. With the preview server stopped, closing and reopening a tab still loaded the page and generated a 126-character example: 7.04 seconds of audio with **0 model bytes downloaded**. Cancel preserved the saved voice. All 20 examples cycled and wrapped back to the first, and the 390 px layout had no horizontal overflow. Fifteen regression tests cover saved-file reuse without network access, interrupted/corrupt downloads, storage limits, pinned revisions, native fetch invocation, offline navigation/assets, reuse of the speech engine across app updates, SEO origins, WAV encoding and automatic-playback preparation/fallback. The current 256-character Project Turaco introduction produced 17.28 seconds of audio and began playing automatically, without a second click.
 
 Technical provenance, licenses and base-model attribution are retained in the [model card](https://huggingface.co/fotiecodes/turaco-nano-tts-wes#license-and-attribution) and source dependencies.
 

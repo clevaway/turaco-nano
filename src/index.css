@@ -204,3 +204,8 @@ footer { border-top: 1px solid var(--border); padding: 25px 0 29px; display: fle
 }
 
 .wordmark-secondary { color: var(--muted-foreground); font-weight: 400; }
+
+.result[hidden] { display: none; }
+.playback-hint { margin: 0; font-size: 14px; color: var(--muted-foreground); }
+.intro > .intro-label { font-size: 16px; font-weight: 550; letter-spacing: 1.8px; }
+@media(max-width:640px) { .intro > .intro-label { font-size: 14px; } }

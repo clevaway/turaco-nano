@@ -1,5 +1,5 @@
 export const examples = [
-  "Massa, how you dey today? I hope say all thing fine for your side. Na long time wey I no hear from you. How life di treat you?",
+  "Na project Turaco be dis. Na project wey we di work on top for make am mi computer understand, translate, and even talk we African languages. We don start with Cameroon Pidgin, but we wan make other African languages join too. Wuna fit try am for wuna sef!",
   "Chai! My brother, you no go believe weti happen yesterday. I bin di go for market when rain just start fall. Before I reach house, all my cloth don wet!",
   "Abeg, you fit helep me small? I di try for finish dis work since morning, but dis computer di give me wahala. I don tire!",
   "My people dem, how wuna dey? Today na better day! No matter how life hard, make we no forget say tomorrow fit better pass today.",

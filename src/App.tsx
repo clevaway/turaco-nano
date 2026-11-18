@@ -13,6 +13,7 @@ import { hasSavedModel } from './speech/model-cache'
 import { prepareOfflineApp, requestPersistentStorage } from './offline/register'
 import { wav } from './speech/wav'
 import { examples } from './examples'
+import { preparePlayback, playResult } from './speech/playback'
 
 type Status = 'idle' | 'loading' | 'preparing' | 'ready' | 'generating' | 'error'
 const modelUrl = 'https://huggingface.co/fotiecodes/turaco-nano-tts-wes'
@@ -24,6 +25,7 @@ export default function App() {
   const [seconds, setSeconds] = useState(0)
   const [error, setError] = useState('')
   const [audio, setAudio] = useState('')
+  const [playbackBlocked, setPlaybackBlocked] = useState(false)
   const [saved, setSaved] = useState(false)
   const [saveFailed, setSaveFailed] = useState(false)
   const [offlineReady, setOfflineReady] = useState(false)
@@ -34,8 +36,10 @@ export default function App() {
   const player = useRef<HTMLAudioElement>(null)
   const releaseAudio = useCallback(() => {
     player.current?.pause()
+    player.current?.removeAttribute('src')
+    player.current?.load()
     if (audioUrl.current) URL.revokeObjectURL(audioUrl.current)
-    audioUrl.current = ''; setAudio('')
+    audioUrl.current = ''; setAudio(''); setPlaybackBlocked(false)
   }, [])
   useEffect(() => {
     let mounted = true
@@ -48,6 +52,15 @@ export default function App() {
       // Release working memory only. Saved model and app files remain in browser storage.
     }
   }, [])
+  useEffect(() => {
+    if (!audio || !player.current) return
+    let current = true
+    player.current.src = audio
+    void playResult(player.current).then(played => {
+      if (current) setPlaybackBlocked(!played)
+    })
+    return () => { current = false }
+  }, [audio])
   function cancel() {
     worker.current?.terminate(); worker.current = null; running.current = false
     releaseAudio(); setStatus('idle'); setLoaded(0); setDownloaded(0); setSeconds(0); setError('')
@@ -57,6 +70,7 @@ export default function App() {
     running.current = true
     requestPersistentStorage()
     releaseAudio(); setSeconds(0); setError('')
+    if (player.current) preparePlayback(player.current)
     setLoaded(0); setDownloaded(0)
     setStatus(worker.current ? 'generating' : 'loading')
     let next = worker.current
@@ -106,11 +120,11 @@ export default function App() {
       </header>
       <main>
         <section className="intro" aria-labelledby="title">
-          <p className="intro-label">PROJECT TURACO</p>
+          <p className="intro-label">RESEARCH PREVIEW</p>
           <h1 id="title">Cameroon Pidgin, in speech.</h1>
           <div className="intro-description">
-            <p>A lightweight text-to-speech research model.</p>
-            <p>Give it some text and hear how it sounds.</p>
+            <p>A lightweight speech model from Project Turaco.</p>
+            <p>Give it some text and listen. Results may vary.</p>
           </div>
         </section>
         <section className="studio" aria-label="Speech playground">
@@ -132,7 +146,7 @@ export default function App() {
           {saveFailed && <Alert><AlertCircle /><AlertTitle>Your voice couldn’t be saved</AlertTitle><AlertDescription>You can still listen now. Your browser may need to download the voice again on your next visit. Free some storage or try another browser to keep it for later.</AlertDescription></Alert>}
           {saved && offlineUnavailable && <Alert><AlertCircle /><AlertTitle>Keep this page open when offline</AlertTitle><AlertDescription>Your voice is saved, but this browser couldn’t save the page for offline reopening. Try another browser if you want to reopen it without internet.</AlertDescription></Alert>}
           <div className="generate-row"><span className="session-note"><ShieldCheck aria-hidden="true" />{saved ? 'Your download stays here for next time.' : 'Download once. Come back and use it again.'}</span><Button size="lg" disabled={busy || !text.trim()} onClick={generate}>{busy ? <Spinner data-icon="inline-start" /> : <AudioLines data-icon="inline-start" />}{status === 'loading' ? (openingSavedVoice ? 'Opening voice' : 'Downloading voice') : status === 'preparing' ? 'Getting ready' : status === 'generating' ? 'Creating speech' : 'Generate speech'}</Button></div>
-          {audio && <div className="result"><div className="result-heading"><span><Check aria-hidden="true" />Your speech is ready</span><a className="quiet-link" href={audio} download="turaco-nano-tts-wes.wav"><Download aria-hidden="true" />Download WAV</a></div><audio ref={player} controls src={audio} preload="metadata" aria-label="Generated Pidgin speech" /></div>}
+          <div className="result" hidden={!audio}><div className="result-heading"><span><Check aria-hidden="true" />Your speech is ready</span><a className="quiet-link" href={audio || undefined} download="turaco-nano-tts-wes.wav"><Download aria-hidden="true" />Download WAV</a></div><audio ref={player} controls preload="metadata" aria-label="Generated Pidgin speech" />{playbackBlocked && <p className="playback-hint" role="status">Tap play to listen.</p>}</div>
         </section>
         <div className="below-studio"><span><ShieldCheck aria-hidden="true" />Your text stays on your device.</span><span>No account. No speech server.</span></div>
         <div className="experiment-notes" aria-label="About the experiment">
